@@ -1,14 +1,16 @@
 require 'curses'
+include Curses
+
 require 'yaml'
 require 'oauth'
 require 'oauth/consumer'
 require 'readline'
 
 $settings = YAML::load_file('./settings.yml')
-CONSUMER_KEY = settings['consumer_key']
-CONSUMER_SECRET = settings['consumer_secret']
-ACCESS_TOKEN = settings['access_token']
-ACCESS_TOKEN_SECRET = settings['access_token_secret']
+CONSUMER_KEY = $settings['consumer_key']
+CONSUMER_SECRET = $settings['consumer_secret']
+ACCESS_TOKEN = $settings['access_token']
+ACCESS_TOKEN_SECRET = $settings['access_token_secret']
 
 class Setup
 
@@ -21,9 +23,11 @@ class Setup
 			self.request_token
 		else
 			puts "Authentication Success"
-			settings['access_token'] = @access_token.token
-			settings['access_token_secret'] = @access_token.secret
-			File.open('./settings.yml','w'){|f| f.write settings.to_yaml}
+			$settings['access_token'] = @access_token.token
+			$settings['access_token_secret'] = @access_token.secret
+			File.open('./settings.yml','w'){|f| f.write $settings.to_yaml}
+			puts "Restart me!"
+			exit
 		end
 	end
 		
@@ -31,4 +35,16 @@ end
 
 Setup.request_token unless ACCESS_TOKEN || ACCESS_TOKEN_SECRET
 
+init_screen
+cbreak
+begin
+	win = stdscr.subwin(stdscr.maxy,stdscr.maxx,0,0)
+	win.box(?|,?-,?+)
+	win.setpos(2,2)
+	win.addstr(`tput cols`.chomp+","+`tput lines`.chomp)
+	win.refresh
+	getch
+ensure
+	close_screen
+end
 
