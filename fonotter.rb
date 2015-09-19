@@ -5,12 +5,18 @@ require 'yaml'
 require 'oauth'
 require 'oauth/consumer'
 require 'readline'
+require 'twitter'
+
+require "./pane"
 
 $settings = YAML::load_file('./settings.yml')
-CONSUMER_KEY = $settings['consumer_key']
-CONSUMER_SECRET = $settings['consumer_secret']
-ACCESS_TOKEN = $settings['access_token']
-ACCESS_TOKEN_SECRET = $settings['access_token_secret']
+CONSUMER_KEY = $settings['oauth_data']['consumer_key']
+CONSUMER_SECRET = $settings['oauth_data']['consumer_secret']
+ACCESS_TOKEN = $settings['oauth_data']['access_token']
+ACCESS_TOKEN_SECRET = $settings['oauth_data']['access_token_secret']
+
+DISPLAY_COLOR = $settings['display_color']
+
 
 class Setup
 
@@ -23,8 +29,8 @@ class Setup
 			self.request_token
 		else
 			puts "Authentication Success"
-			$settings['access_token'] = @access_token.token
-			$settings['access_token_secret'] = @access_token.secret
+			$settings['oauth_data']['access_token'] = @access_token.token
+			$settings['oauth_data']['access_token_secret'] = @access_token.secret
 			File.open('./settings.yml','w'){|f| f.write $settings.to_yaml}
 			puts "Restart me!"
 			exit
@@ -37,14 +43,14 @@ Setup.request_token unless ACCESS_TOKEN || ACCESS_TOKEN_SECRET
 
 init_screen
 cbreak
-begin
-	win = stdscr.subwin(stdscr.maxy,stdscr.maxx,0,0)
-	win.box(?|,?-,?+)
-	win.setpos(2,2)
-	win.addstr(`tput cols`.chomp+","+`tput lines`.chomp)
-	win.refresh
-	getch
-ensure
-	close_screen
-end
+noecho
+default_window = Curses.stdscr
+pane = Pane.new(default_window,DISPLAY_COLOR)
 
+streaming_client = Twitter::Streaming::Client.new($settings['oauth_data'])
+streaming_client.user do |obj|
+	if obj.is_a?(Twitter::Tweet)
+		pane.add(obj)
+		pane.show
+	end
+end
