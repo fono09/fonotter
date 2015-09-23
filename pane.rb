@@ -39,9 +39,33 @@ class Column
 end
 
 class Table
-	def initialize(win,width,height,top,left,*cols)
-		
+
+	def initialize(win,width,height,top,left,*cols_width)
+		left_pos = 0
+		@win = win
+		@width = width
+		@height = height
+		@top = top
+		@left = left
+		@columns = []
+		cols_width.each_with_index do |width,index|
+			@columns.push(Column.new(win,width,height,top,left_pos))
+			left_pos += width
+		end
 	end
+
+	def add(strings)
+		@columns.zip(strings) do |column,str|
+			column.add(str)
+		end
+	end
+
+	def show
+		@columns.each do |column|
+			column.show
+		end
+	end
+
 end
 
 class Pane

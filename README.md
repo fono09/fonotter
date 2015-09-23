@@ -1,6 +1,10 @@
 # fonotter
 FONO creates twitter client on ssh terminal.  
 
+# to do
+Use ANSI color  
+Make table parts  
+Post tweet  
 
 # setup
 ```
