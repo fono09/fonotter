@@ -7,7 +7,7 @@ require 'oauth/consumer'
 require 'readline'
 require 'twitter'
 
-require "./pane"
+require "./table"
 
 $settings = YAML::load_file('./settings.yml')
 CONSUMER_KEY = $settings['oauth_data']['consumer_key']
@@ -45,12 +45,14 @@ init_screen
 cbreak
 noecho
 default_window = Curses.stdscr
-pane = Pane.new(default_window,DISPLAY_COLOR)
+width = default_window.maxx
+height = default_window.maxy
+table = Table.new(default_window,width,height/4*3,0,0,[width/5,width/5*4])
 
 streaming_client = Twitter::Streaming::Client.new($settings['oauth_data'])
 streaming_client.user do |obj|
 	if obj.is_a?(Twitter::Tweet)
-		pane.add(obj)
-		pane.show
+		table.add(['@'+obj.user.screen_name,obj.text])
+		table.show
 	end
 end

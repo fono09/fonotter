@@ -2,7 +2,7 @@
 FONO creates twitter client on ssh terminal.  
 
 # to do
-Use ANSI color  
+Use ANSI color (with RegExp,pattern)  
 Make table parts  
 Post tweet  
 
