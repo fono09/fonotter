@@ -1,9 +1,26 @@
 require 'curses'
+require 'unicode_utils/display_width'
+
+
+class DisplayString 
+
+	def initialize(str,color_id)
+		@str = str
+		@color_id = color_id
+	end
+
+	def display_width
+		UnicodeUtils.display_width(@str)
+	end
+
+end
 
 class String
+
 	def printsize
-		return self.each_char.map{ |c| c.bytesize==1 ? 1 : 2 }.reduce(0,&:+)
+		UnicodeUtils.display_width(self)
 	end
+
 end
 
 class Column
@@ -23,7 +40,7 @@ class Column
 			@columns.shift
 		end
 	end
-	
+
 	def show
 		@columns.each_with_index do |content,index|
 			display_str = content
@@ -50,7 +67,6 @@ class Table
 		@left = left
 		@columns = []
 		@columns_width = cols_width
-		p [@width,@height,@top,@left]
 		@columns_width.each_with_index do |width,index|
 			@columns.push(Column.new(@window,width,@height,@top,left_pos))
 			left_pos += width

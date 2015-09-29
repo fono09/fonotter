@@ -7,7 +7,7 @@ require 'oauth/consumer'
 require 'readline'
 require 'twitter'
 
-require "./table"
+require "./view"
 
 $settings = YAML::load_file('./settings.yml')
 CONSUMER_KEY = $settings['oauth_data']['consumer_key']
