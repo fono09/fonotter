@@ -1,6 +1,37 @@
 require 'curses'
-require 'unicode_utils/display_width'
+require 'unicode_utils'
 
+def init_color 
+	color_list = [
+		COLOR_BLACK,
+		COLOR_WHITE,
+		COLOR_BLUE,
+		COLOR_CYAN,
+		COLOR_GREEN,
+		COLOR_MAGENTA,
+		COLOR_RED,
+		COLOR_YELLOW
+	]
+
+	cnt = 0
+	color_list.each.with_index {|fg,i|
+
+		(0..i-1).each do |j|
+			bg = color_list[j]
+			init_pair(cnt,fg,bg)
+			cnt+=1
+		end
+
+		(i+1..color_list.length-1).each do |j|
+			bg = color_list[j]
+			init_pair(cnt,fg,bg)
+			cnt+=1
+		end
+
+	}
+end
+
+init_color
 
 class DisplayString 
 
@@ -13,6 +44,13 @@ class DisplayString
 		UnicodeUtils.display_width(@str)
 	end
 
+	def print(win,x,y)
+		win.setpos(x,y)
+		win.attron(color_pair(@color_id))
+		win.addstr(@str)
+		win.attroff(color_pair(@color_id))
+	end
+		
 end
 
 class String
@@ -43,15 +81,22 @@ class Column
 
 	def show
 		@columns.each_with_index do |content,index|
-			display_str = content
-			display_str = display_str.gsub(/(\r\n|\r|\n)/,'')
-			pos = display_str.length
-			while display_str.printsize > @width
-				pos-=1
-				display_str = display_str[0,pos]
+			if content.is_a?(String) then
+				display_str = content
+				display_str = display_str.gsub(/(\r\n|\r|\n)/,'')
+				pos = display_str.length
+				while display_str.printsize > @width
+					pos-=1
+					display_str = display_str[0,pos]
+				end
+				@window.setpos(index,0)
+				@window.addstr(display_str)
+			elsif content.is_a?(Array) then
+				pos_col = 0
+				content.each do |str|
+				end
 			end
-			@window.setpos(index,0)
-			@window.addstr(display_str)
+
 		end
 	end
 end
