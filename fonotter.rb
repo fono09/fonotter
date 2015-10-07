@@ -1,5 +1,4 @@
 require 'curses'
-include Curses
 
 require 'yaml'
 require 'oauth'
@@ -41,24 +40,33 @@ end
 
 Setup.request_token unless ACCESS_TOKEN || ACCESS_TOKEN_SECRET
 
-init_screen
-cbreak
-noecho
-default_window = Curses.stdscr
-width = default_window.maxx
-height = default_window.maxy
-table = Table.new(default_window,width,height/4*3,0,0,[width/5,width/5*4])
+main_view = View.new
+width = main_view.width
+height = main_view.height
+table = Table.new(main_view.window,width,height/4*3,0,0,[width/5,width/5*4])
 
 streaming_client = Twitter::Streaming::Client.new($settings['oauth_data'])
 streaming_client.user do |obj|
 	if obj.is_a?(Twitter::Tweet)
 		text_column=[]
+
 		if obj.text =~ /RT/ then 
-			obj.text.split(/RT/).each do |str|
-				text_column.push(DisplayString.new(str,0))
-				text_column.push(DisplayString.new(str,35))
+			tmp = obj.text.split(/RT/)
+			tmp.each.with_index do |str,i|
+			
+				unless tmp[i+1] != nil then
+					text_column.push(DisplayString.new('RT',4))
+				end
+
+				unless str=="" then	
+					text_column.push(DisplayString.new(str,0))
+				end
+				
 			end
+		else
+			text_column.push(DisplayString.new(obj.text,0))
 		end
+
 		user_column=[DisplayString.new('@'+obj.user.screen_name,0)]
 		table.add([user_column,text_column])
 		table.show
